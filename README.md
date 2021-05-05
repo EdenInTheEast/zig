@@ -19,6 +19,35 @@ pip install zig
 
 ```python
 from zig import Zig
+from zig.main_components import Graph
+from zig.html_components import *
+
+import pandas as pd
+from ploty.express import bar 
+
+
+app = Zig("app_name")
+
+
+df = pd.DataFrame({
+        "Phone OS": ["IOS", "Android", "IOS", "Android", "IOS", "Android"],
+        "Amount": [400, 500, 300, 700, 200, 900],
+        "City": ["SF", "NY", "SF", "NY", "SF", "NY"]
+   	})
+
+fig = bar(df, x="Phone OS", y="Amount", color="City", barmode="group")
+
+# Zig provides nested sections, and introspection of sections
+# with reusable components that can be passed away,
+div = Div().add(P("This is your first graph!"))
+div.add(Graph(fig))
+
+# Makes coding webapp clean and simple
+app.add(div)
+
+
+# Starts a local dev server on localhost. Uses Flask as default
+app.run()
 
 
 ```

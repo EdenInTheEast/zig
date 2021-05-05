@@ -9,10 +9,15 @@ Zig can be configured to use Flask(default), Django or other Python web framewor
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install Zig.
+Use the package manager [pip](https://pip.pypa.io/en/stable/), or pipenv(virtual env) to install Zig.
 
 ```bash
 pip install zig 
+
+Or with virtual environment,
+pipenv install zig
+
+
 ```
 
 ## Usage
@@ -37,8 +42,8 @@ df = pd.DataFrame({
 
 fig = bar(df, x="Phone OS", y="Amount", color="City", barmode="group")
 
-# Zig provides nested sections, and introspection of sections
-# with reusable components that can be passed away,
+# Zig provides nested sections and introspection of sections
+# with reusable components that can be passed around
 div = Div().add(P("This is your first graph!"))
 div.add(Graph(fig))
 
@@ -53,6 +58,9 @@ app.run()
 ```
 
 ## Contributing
+Angular library is on https://github.com/EdenInTheEast/zig-angular 
+
+
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.

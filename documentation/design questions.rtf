@@ -1,0 +1,368 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf500
+{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;\f2\fswiss\fcharset0 Helvetica-Oblique;
+}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww17760\viewh13760\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b\fs24 \cf0 \ul \ulc0 Design Questions\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ulnone Configuration:\ul \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 \ulnone 	- What is the actual design and benefits of using a configuration object?\
+		- 
+\f0\b encapsulate different attributes into one
+\f1\b0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 			- Don\'92t need to selectively pass attributes around, 
+\f1\b0 \
+
+\f0\b 				- which is easier to manage. Don\'92t need to keep track who needs what
+\f1\b0 \
+			- just pass the config obj. and let each method or object decides which one to use\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f2\i \cf0 				- def method(config):\
+					#I only need host\
+					host = config.host 
+\f1\i0 \
+\
+		- easy to pass around to other internal objects\
+		- able to reuse them in other zig objects:\
+			styles_from_another_project = zig.getStyleConfig()\
+			zig(style= styles_from_another_project)\
+\
+	- different configuration objects for different purposes: StyleConfiguration, ContainerConfiguration\
+		- 
+\f0\b can create log or file function to collect all configurations into one file
+\f1\b0 \
+			- or 
+\f0\b even to read from csv to create configuration objects automatically
+\f1\b0 \
+\
+	\
+	\ul Types of attributes
+\f0\b \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 \ulnone 	- common to all containers\
+	- specific to unique container?\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 	- what are the issues here?
+\f1\b0 \
+		- 
+\f0\b how should we handle container-specific attributes so that it doesn\'92t affect typical configurations of zig?
+\f1\b0 \
+			- container-level error checking instead of checking at zig level\
+
+\f0\b 			- only accept common attributes at zig-level, containerConfig should check and raise Exception at configuration-level
+\f1\b0 \
+				- can use **kwargs to accept container-specific parameters at zig-level. e.g zig(additionalConfig=\{key:value\})\
+				- checks addtionalConfig at container-level \
+				- 
+\f0\b zig can pass along any container-specific message for the user to know what other attributes are needed
+\f1\b0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 \ul \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 \ulnone 				- if not required, will just collect all generic configurations from parameters and pass along
+\f0\b \ul \
+\
+\
+\
+\
+IDs:\
+
+\f1\b0 \ulnone 	- need an id registry singleton object\
+	- use borg pattern\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 	- ID class?\
+		
+\f1\b0 - easier to identity for class and function when passing an Id object.\
+			- will be able to refer to id registration\
+\
+\
+\
+
+\f0\b 	- when creating element with id:
+\f1\b0 \
+		- id should automatically be registered in id registery\
+		- then check against registry\
+	\
+		
+\f0\b - when creating interaction:\
+			
+\f1\b0 - it will lookup for id in registery to get html object\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 \ul \
+\
+\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \ulnone Containers:\ul \
+	
+\f1\b0 \ulnone - able to extend for future improvement\
+	- Uses flask for open-source, can implement Django or others for enterprise\
+\
+
+\f0\b 	- How do we handle container-specific actions?\ul \
+		
+\f1\b0 \ulnone - Only expose common interface to Zig Object
+\f0\b \ul \
+\
+\
+\ulnone Section:
+\f1\b0 \
+	- Do we need to implement this as a section object, or just accept any html or js component?\
+\
+\
+
+\f0\b Sections: (self.sections)
+\f1\b0 \
+	- sections should be of an ordered list structure, rather than tree structure? n-nary tree?\
+		- Maybe:\
+			- a dictionary of list for fast retrieval of obj\
+			- deque for to keep track of the order\
+
+\f0\b 				- what should we store? the index, title, or the object itself
+\f1\b0 \
+\
+
+\f0\b 	- Should we use index-based or name-based?
+\f1\b0 \
+		- name-based will be trouble when initializing, but more efficient when arranging\
+
+\f0\b 			- name can also be derived from object\'92s actual html id [html name is not unique]
+\f1\b0 \
+		- \
+\
+
+\f0\b 	- can we allow duplicate section?\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 		- yes, user should be able to reuse section, and also insert duplicate components into section\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 	- how do we keep track of duplicates?
+\f1\b0 \
+		- if the id is the same, don\'92t need to store multiple copies in the dictionary\
+\
+\
+
+\f0\b 	- what functions do we need to have for sections?
+\f1\b0 \
+		- e.g need to get least value\'85.then use a min. Heap. Or binary search tree?\
+		\
+
+\f0\b 	- Able to insert and reorder at fast speed:\
+		
+\f1\b0 - zig.add_sections(x,y,z)\
+\
+
+\f0\b 	- SHOULD this data structure be used for all html structural component? [div, table, li]\
+\
+\
+\
+	- insert_line_break: 
+\f1\b0 use a generator
+\f0\b \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 		- only create this during rendering\
+		- use a decorator to convert any html element into multiple
+\f0\b \
+				\
+
+\f1\b0 \
+	
+\f0\b \ul Rendered section
+\f1\b0 \ulnone \
+	
+\fs22 - Zig doesn\'92t store rendered sections -> Configuration will store that to prevent duplicates or extra space -> 
+\f0\b Need to add/update during container runtime
+\f1\b0\fs24 \
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 Layout-render to json design:\
+	- to what and from where will angular receive this?\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 		- what format?\
+		- needs a unique api point designated to pick up initial json?\
+			- and unique api point for interaction json?\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 Api design:
+\f1\b0 \
+	- \
+\
+\
+
+\f0\b Render:
+\f1\b0 \
+
+\f0\b 	- what does render do?
+\f1\b0 \
+		- compile all layout information into json\
+		- why json? is there a better data structure?\
+		- \
+\
+
+\f0\b 	- able to trigger independently? for what purposes?
+\f1\b0 \
+		- able to look at that it?\
+		- able to print it\
+		- able to pass the json to other server or elsewhere without running server\
+\
+	- other than that, it is better to just render on run\
+\
+\
+
+\f0\b MainComponent:\
+	
+\f1\b0 - should inherit Section properties\
+	- should be able to render as json\
+	\
+	- need a parent class\
+\
+	- Graph object should be very specific as compared to the other components\
+\
+\
+
+\f0\b HtmlComponent
+\f1\b0 \
+	- some should inherit Section properties\
+	- should be able to render as json\
+\
+	- need a parent class\
+\
+\
+	- 1st parameter will be content, 2nd will be value\
+		- for element without content, will be value or most important attr\
+\
+	- ALL HTML component will inherit Element and Section Class\
+		- inherit Section or implement Section?\
+			- inherit: Div().add(Div())\
+			- implement: Div.().section.add(DIv())\
+\
+\
+
+\f0\b 	- How do they edit header?\
+	- How do they edit footer?
+\f1\b0 \
+\
+\
+\
+
+\f0\b Interactions:\
+\
+\
+	- Interaction list: 
+\f1\b0 doesn\'92t need to be ordered\
+		- use a dictionary
+\f0\b \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 \
+	- How to differentiate between client and server interactions?\
+\
+	- How to send interaction to server-end?\
+		- api-end for each Interaction Object?\
+		- how to automate discovery?\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 			- have different types of Object?\
+				- ServerInteraction, ClientInteraction\
+			- mixed?
+\f1\b0 \
+	\
+	- How to pass function logic to angular? \
+\
+	- How to map?\
+\
+	- How to chain?\
+\
+
+\f0\b 	- Don\'92t use decorator so the function is resuable, and can be use by many different interaction Objects\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 	- Dash runs initial interactions even when there is no interaction intiially. Able to switch off?
+\f1\b0 \
+\
+
+\f0\b 	- LOOPS??\
+	- STATES?
+\f1\b0 \
+\
+\
+
+\f0\b 	- ABLE TO CHAIN Interact Objects?\
+\
+	- Mulitple input?\
+		Interact([Input(), Input()], Ouput())\
+\
+\
+	- HOW DO WE CHAIN?\
+	- HOW DO WE LOOP?\
+	- HOW DO WE DO STATE?\
+	- \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\b0 \cf0 \
+\
+\
+\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\b \cf0 Run:\
+	
+\f1\b0 - \
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+}

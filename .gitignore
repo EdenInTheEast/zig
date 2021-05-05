@@ -8,6 +8,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+Angular/
 build/
 develop-eggs/
 dist/

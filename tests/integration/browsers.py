@@ -35,64 +35,54 @@ class SeleniumBrowser(BaseBrowser):
         #NOTE maybe we can use pool pattern to
         # keep the same browser objects?
 
-        # a list of browsers to run tests in
-        if browsers:
-            self.browers = browers
-        else:
-            self.browsers = {"Firefox":"_firefox", "Chrome":"_chrome"}
+        self._default_browsers = ["chrome"] 
 
+        # a list of browsers to run tests in
+        if isinstance(browsers, list):
+            self.browsers = browsers
+        elif isinstance(browsers, str) and browser.lower() in self._default_browsers:
+            self.browsers = [*browsers]
+        else:
+            self.browsers = self._default_browsers 
 
         self.headless = headless 
-
+        self.webdrivers = self._initialize_web_drivers(self.browsers)
+        
+    def _initialize_web_drivers(self, browsers):
+        drivers = dict()
 
         for b in self.browsers:
-            self.initialize_web_drivers()
-        
-
-    def initialize_web_drivers(self, drivers: None):
-        drivers = drivers if drivers else self
-
-
-    def create_web_driver(self, driver):
-        # uses lazy initialization pattern
-        return getattr(self, self.drivers[driver])
+            try:
+                drivers[b] = getattr(self, f"{b.lower()}")
+            except Exception:
+                raise
+        return drivers
 
     @property
-    def _firefox(self):
-        # only create and store if specified
-        if not hasattr(self, "__firefox":
-            self.__firefox = self._create_firefox_driver()
-            return self.__firefox 
-        else:
-            return self.__firefox
+    def firefox(self):        
+        if not hasattr(self, "__firefox"):
+            self.__firefox = self._create_firefox_driver(self.webdriver) 
+        return self.__firefox 
 
-    def _create_firefox_driver(self):
-        return self.webdriver.FireFox() 
-            
+    def _create_firefox_driver(self, webdriver):
+        return webdriver.FireFox()
 
-    """ 
-    @_firefox.setter
-    def _firefox(self, value):
-        # value handling
-        if value == "initialize":
-            self.__firefox == self.webdriver.FireFox() 
-            return self.__firefox 
-    """
+    @property
+    def chrome(self):        
+        if not hasattr(self, "__chrome"):
+            self.__chrome = self._create_chrome_driver(self.webdriver) 
+        return self.__chrome 
 
+    def _create_chrome_driver(self, webdriver):
+        return webdriver.Chrome()
+
+
+    def __enter__(self):
+        return self
     
-    @property
-    def _chrome(self):
-        pass
 
-    @property
-    def _ie(self):
-        pass
-
-    @property
-    def _opera(self):
-        pass
-
-         
+    def __exit__(self):
+        self.webdriver.close()
 
 
 

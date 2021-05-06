@@ -15,7 +15,6 @@ from runner2 import FlaskThread
 
 class TestInteractionIntegration:
     """
-        - runs with dummy client
         - runs with selenium
 
         - test render response
@@ -38,6 +37,10 @@ class TestInteractionIntegration:
         with ClientFlask(thread_server) as cf:
             yield cf
 
+    @pytest.fixture
+    def browser(self):
+        with SeleniumBrowser() as b:
+            yield b
 
     @pytest.fixture
     def basic_interaction(self):
@@ -46,32 +49,34 @@ class TestInteractionIntegration:
         return_callback = lambda x: x
         
         zig_interaction = Interact( InteractIn(Input(id="234"), "value"),
-                                InteractOut(Div(id="345"), "content"),
-                                return_callback )
+                                    InteractOut(Div(id="345"), "content"),
+                                    return_callback)
 
         app.add_interaction(zig_interaction)
         return app
 
 
-    def test_interaction_render_response(self, basic_interaction, server):
+    def test_interaction_render_browser(self, basic_interaction, thread_server):
         # use python requests to send get and parse api
 
 
         app = basic_interaction
         expected_response = {'interactions': {'0': {'api_point': '/interact/0',
-                                                    'input': {'0': {'attribute': 'value', 'dom_type': 'input', 'id': '234'}},
-                                                    'output': {'0': {'attribute': 'content', 'dom_type': 'div', 'id': '345'}}}}, 
+                                                    'input': {'0': {'attribute': 'value', 
+                                                    'dom_type': 'input', 'id': '234'}},
+                                                    'output': {'0': {'attribute': 'content', 
+                                                    'dom_type': 'div', 'id': '345'}}}}, 
                                                     "sections":{}}    
 
-        '''
-        with client.run(app) as c:
-            # client needs to run server in thread
-            # then need to send http get request to send
-            # and client should return response
+        # thread starts
+        """
+        thread_server(app)
+        
+        browser.get(app.index_url)
+        
 
-            assert c.get('/') == expected_response 
-        '''
-        #another method
+
+        #another method        
         server.start_server(app) 
         
         #TODO: need to get server index and api point from app object 
@@ -83,20 +88,50 @@ class TestInteractionIntegration:
         assert response.json() == expected_response 
 
         #assert client.get('/') == expected_response
+        """
 
+
+
+    def test_interaction_render_response(self, basic_interaction, server):
+        # use python requests to send get and parse api
+
+
+        app = basic_interaction
+        expected_response = {'interactions': {'0': {'api_point': '/interact/0',
+                                                    'input': {'0': {'attribute': 'value', 
+                                                    'dom_type': 'input', 'id': '234'}},
+                                                    'output': {'0': {'attribute': 'content', 
+                                                    'dom_type': 'div', 'id': '345'}}}}, 
+                                                    "sections":{}}    
+
+        #another method        
+        server.start_server(app) 
+        
+        #TODO: need to get server index and api point from app object 
+        #TODO: a common api parse object?
+        response = requests.get("http://127.0.0.1:5000/api")
+        
+        assert response.status_code == 200
+        assert response.headers['content-type'] == 'application/json'
+        assert response.json() == expected_response 
+
+        #assert client.get('/') == expected_response
+        
 
     def test_interaction_render_response_2(self, basic_interaction):
         app = basic_interaction
         expected_response = {}    
-
-        ''' 
+        
+        """
         with FlaskThread(app) as thread:
             # client needs to run server in thread
             # then need to send http get request to send
             # and client should return response
 
-            print(thread) 
-        '''
+            with Browser(url) as b: 
+                print(thread)   
+        """
+        
 
 
     def test_interaction_api_get(self):

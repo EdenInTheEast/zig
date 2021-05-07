@@ -21,7 +21,7 @@ class Container:
         and should implement their own initialization methods.
 
         """
-        self.configuration = container_configuration
+        self.config = container_configuration
 
     def _initialize(self):
         pass
@@ -50,7 +50,7 @@ class FlaskContainer(Container):
         # initialize procedures
         if not getattr(self, "app_instance", None):
             # add
-            self.app_instance = self._initialize(self.configuration)
+            self.app_instance = self._initialize(self.config)
 
     """ initialize methods
     """
@@ -66,7 +66,7 @@ class FlaskContainer(Container):
 
         raise Exception("Unable to create app")
 
-    def _create_app(self, container_configuration):
+    def _create_app(self, container_configuration: FlaskConfiguration):
         try:
             return Flask(**container_configuration.make_initialization_dict())
         except Exception:
@@ -79,7 +79,7 @@ class FlaskContainer(Container):
     def _create_initial_routes(self, app):
         # a set of operations to start
         # add url routes
-        app = self.set_index_view(app, self.configuration.template_index_name)
+        app = self.set_index_view(app, self.config.template_index_name)
 
         return app
 
@@ -121,7 +121,7 @@ class FlaskContainer(Container):
 
         # creates api url for zig blueprint
         if app:
-            app = self.add_api_end_point(app, self.configuration.blueprint)
+            app = self.add_api_end_point(app, self.config.blueprint)
 
             # interact-specified process
             if app:
@@ -210,13 +210,15 @@ class FlaskContainer(Container):
     def _register_flask_blueprint(self, app, flask_blueprint):
 
         app.register_blueprint(flask_blueprint)
-        print(app.url_map)
-
         return app
 
     """ Server methods
     """
 
     def run(self):
+        
         """need host/port and other configurations"""
-        self.app_instance.run()
+        self.app_instance.run(host=self.config.host, 
+                              port=self.config.port)
+
+

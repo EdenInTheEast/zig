@@ -8,7 +8,7 @@ from zig.html_components import *
 
 
 from runner import ClientFlask, LiveFlaskServer 
-from runner2 import FlaskThread
+from composite import ApiParserThread, SeleniumBrowserThread
 
 
 
@@ -25,12 +25,24 @@ class TestInteractionIntegration:
 
 
     """
+    @pytest.fixture
+    def api_parser(self):
+        # json parser
+        with ApiParserThread() as parser:
+            yield parser
+    
+    @pytest.fixture
+    def selenium_browser(self):
+        # selenium browser
+        with SeleniumBrowserThread() as browser:
+            yield browser 
+
+
 
     @pytest.fixture
     def thread_server(self):
         with LiveFlaskServer() as starter:
             yield starter
-
 
     @pytest.fixture
     def server(self, thread_server):
@@ -41,6 +53,7 @@ class TestInteractionIntegration:
     def browser(self):
         with SeleniumBrowser() as b:
             yield b
+
 
     @pytest.fixture
     def basic_interaction(self):
@@ -56,7 +69,7 @@ class TestInteractionIntegration:
         return app
 
 
-    def test_interaction_render_browser(self, basic_interaction, thread_server):
+    def test_interaction_render_browser(self, basic_interaction, selenium_browser):
         # use python requests to send get and parse api
 
 
@@ -92,7 +105,7 @@ class TestInteractionIntegration:
 
 
 
-    def test_interaction_render_response(self, basic_interaction, server):
+    def test_interaction_render_response(self, basic_interaction, api_parser):
         # use python requests to send get and parse api
 
 
@@ -103,19 +116,15 @@ class TestInteractionIntegration:
                                                     'output': {'0': {'attribute': 'content', 
                                                     'dom_type': 'div', 'id': '345'}}}}, 
                                                     "sections":{}}    
-
-        #another method        
-        server.start_server(app) 
         
-        #TODO: need to get server index and api point from app object 
-        #TODO: a common api parse object?
-        response = requests.get("http://127.0.0.1:5000/api")
-        
-        assert response.status_code == 200
-        assert response.headers['content-type'] == 'application/json'
-        assert response.json() == expected_response 
+        url = "http://127.0.0.1:5000/api" 
 
-        #assert client.get('/') == expected_response
+        #TODO: need to get server index and api url from app object 
+
+        api_parser.start_thread(app)
+        response = api_parser.get(url)
+
+        assert api_parser.get_json(response) == expected_response 
         
 
     def test_interaction_render_response_2(self, basic_interaction):

@@ -1,13 +1,18 @@
 
 import logging
-from typing import Union, List
+import requests
+
+# typing
+from requests import Response 
+from typing import Union, List, Type
 
 from selenium import webdriver
 
+
+
 logger = logging.getLogger(__name__)
 
-
-class BaseBrowser:
+class BaseParser:
     # Browser interface
 
     def __init__(self):
@@ -24,7 +29,7 @@ class BaseBrowser:
 
 
 
-class SeleniumBrowser(BaseBrowser):
+class SeleniumBrowser(BaseParser):
     """ Uses Selenium to parse and assert all integration tests
 
     """
@@ -86,7 +91,7 @@ class SeleniumBrowser(BaseBrowser):
 
 
 
-class SeleniumServer(BaseBrowser):
+class SeleniumServer(BaseParser):
     """ Uses Selenium Server to parse and assert all integration tests
     """
         
@@ -104,7 +109,7 @@ class SeleniumComposite(SeleniumBrowser, SeleniumServer):
         pass
 
 
-class FlatHTMLParser(BaseBrowser):
+class FlatHTMLParser(BaseParser):
     """ Doesn't use/launch any browser
     Uses requests and BeautifulSoap to parse html response.
     Use this for checking templates' contents quickly.
@@ -116,13 +121,49 @@ class FlatHTMLParser(BaseBrowser):
         pass
 
 
-class ApiParser() 
+class ApiParser(BaseParser): 
     """Parser for JSON responses
     Use this to check api responses
     """
 
-    def __init__(self)
+    def __init__(self):
+        self.url = None
+        self.response = None
+
+    def get(self, url):
+        try:
+            self.response = requests.get(url) 
+            return self.response 
+        except:
+            raise ValueError("Invalid url: unable to process get request")
+
+    def post(self):
         pass
+
+    def put(self):
+        pass
+
+    def is_json(self, response: Type[Response]=None):
+        # return False if it is not json type
+        response = response if response else self.response
+
+        if response.status_code == 200:
+            if response.headers['content-type'] == 'application/json':
+                return True
+        return False
+
+    def get_json(self, response: Type[Response]=None):
+        response = response if response else self.response 
+        
+        if self.is_json(response):
+            #implicit is_json assertion
+            return response.json()
+        else:
+            raise Exception("Response is not a JSON response")
+        
+
+
+
 
 
     

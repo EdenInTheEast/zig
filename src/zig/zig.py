@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import Union
 
 from .section import SectionAttacher
 
@@ -40,6 +41,8 @@ class CoreZig(BaseZig):
         static_url: str = "/assets",
         template_directory: str = DEFAULT_TEMPLATE_DIRECTORY,
         template_index_name: str = None,
+        host: str = None,
+        port: Union[str, int]= None,
         **kwargs
     ):
         """
@@ -99,15 +102,17 @@ class CoreZig(BaseZig):
             # able to add other containers in the future
             if container == "Flask":
                 # where to check argument?
-                self.container_configuration = FlaskConfiguration(
+                self.container_config = FlaskConfiguration(
                     self.app_name,
                     static_url,
                     static_directory,
                     template_directory,
                     template_index_name=template_index_name,
+                    host=host,
+                    port=port
                 )
 
-            self.container = self._initiate_container(self.container_configuration)
+            self.container = self._initiate_container(self.container_config)
         else:
             raise TypeError("Unknown Container Type: {}".format(container))
 
@@ -256,6 +261,12 @@ class CoreZig(BaseZig):
     """ Server-related methods
     """
 
+    def wsgi_entry(self):
+        #TODO wsgi-friendly entry point which is container agnostic
+        pass
+
+
+
     def _run_server(self, container):
         # Internal server start-up
         try:
@@ -281,25 +292,30 @@ class CoreZig(BaseZig):
         config: ContainerConfiguration = None,
         container: Container = None,
         interactions: Configuration = None,
+        host: str = None,
+        port: Union[str, int] = None
     ) -> dict:
         """Template method
         Render the template, and start the server
 
-        :param sections: accepts a list of sections to which it will render in the specific order.
-        :param config: will need to use configuration to change/set settings for container
+        :param sections: accepts a list of sections to which it will 
+        render in the specific order.
+        :param config: will need to use configuration to change/set 
+        settings for container
         :param container:
         :return: returns Configuration for introspection
         """
-
+        
         # Initialize
         sections = sections if sections else self.sections
-        config = config if config else self.container_configuration
+        config = config if config else self.container_config
         container = container if container else self.container
         interactions = interactions if interactions else self.interactions
 
         # triggers rendering process: converts all to dictionary
         # either pick up up arguments or retrieve from self.sections
         config.blueprint = self._render(sections, interactions)
+       
 
         # TODO: need to be able to change configuration at runtime
         # TODO: need to set host and port
@@ -308,7 +324,9 @@ class CoreZig(BaseZig):
         # use this to add api point for sending initial json
         # also includes any necessary update procedures
         if self._update_procedures(container):
-
+            if host: config.host = host
+            if port: confg.port = port
+    
             # starts server
             if self._run_server(container):
                 # TODO: should be able to not return anything

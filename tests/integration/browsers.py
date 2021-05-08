@@ -7,6 +7,8 @@ from requests import Response
 from typing import Union, List, Type
 
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC 
 
 
 
@@ -34,7 +36,10 @@ class SeleniumBrowser(BaseParser):
 
     """
 
-    def __init__(self, url, browsers: Union[str, List[str]]=None, headless:bool=True):
+    def __init__(self, url:str=None, 
+                 browser: Union[str, List[str]]=None, 
+                 headless:bool=True):
+
         self.url = url
 
         #NOTE maybe we can use pool pattern to
@@ -43,16 +48,42 @@ class SeleniumBrowser(BaseParser):
         self._default_browsers = ["chrome"] 
 
         # a list of browsers to run tests in
-        if isinstance(browsers, list):
-            self.browsers = browsers
-        elif isinstance(browsers, str) and browser.lower() in self._default_browsers:
-            self.browsers = [*browsers]
+        if isinstance(browser, list):
+            self.browsers = browser
+        elif isinstance(browser, str) and browser.lower() in self._default_browsers:
+            self.browsers = [browser]
         else:
             self.browsers = self._default_browsers 
 
         self.headless = headless 
-        self.webdrivers = self._initialize_web_drivers(self.browsers)
         
+        
+    def get(self, url=None):
+        url = url if url else self.url
+        self.webdrivers = self._initialize_web_drivers(self.browsers)
+
+        if url is None: raise ValueError("No valid url is given")
+
+        for b in self.webdrivers.values():
+            b.get(url)
+        
+            """try:
+                element = WebDriverWait(b, 10).until(EC.presence_of_element((By.ID, "123")))
+            """
+
+            b.close() 
+            
+
+
+        #TODO: how to know when ajax is loaded?
+
+
+    def post(self):
+        raise Exception("Use json parser instead. Or test on angular code instead.")
+    
+    def put(self):
+        raise Exception("Use json parser instead. Or test on angular code instead")
+
     def _initialize_web_drivers(self, browsers):
         drivers = dict()
 
@@ -66,19 +97,19 @@ class SeleniumBrowser(BaseParser):
     @property
     def firefox(self):        
         if not hasattr(self, "__firefox"):
-            self.__firefox = self._create_firefox_driver(self.webdriver) 
+            self.__firefox = self._create_firefox_driver() 
         return self.__firefox 
 
-    def _create_firefox_driver(self, webdriver):
+    def _create_firefox_driver(self):
         return webdriver.FireFox()
 
     @property
     def chrome(self):        
-        if not hasattr(self, "__chrome"):
-            self.__chrome = self._create_chrome_driver(self.webdriver) 
+        if not hasattr(self, "__chrome"):            
+            self.__chrome = self._create_chrome_driver() 
         return self.__chrome 
 
-    def _create_chrome_driver(self, webdriver):
+    def _create_chrome_driver(self):
         return webdriver.Chrome()
 
 
@@ -87,7 +118,8 @@ class SeleniumBrowser(BaseParser):
     
 
     def __exit__(self):
-        self.webdriver.close()
+        for b in self.webdrivers.values():
+            b.close()
 
 
 
@@ -135,7 +167,7 @@ class ApiParser(BaseParser):
             self.response = requests.get(url) 
             return self.response 
         except:
-            raise ValueError("Invalid url: unable to process get request")
+            raise ValueError(f"Invalid url: {url}, unable to process get request")
 
     def post(self):
         pass
@@ -161,6 +193,9 @@ class ApiParser(BaseParser):
         else:
             raise Exception("Response is not a JSON response")
         
+
+
+
 
 
 

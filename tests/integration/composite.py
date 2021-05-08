@@ -7,11 +7,12 @@ from zig import Zig
 
 
 
-class ThreadComposite:
+"""class ThreadComposite:
 
-    def __init__(self):
-        self.thread = thread if thread else LiveServerThread
+    def __init__(self, thread=None):
+        # use a common 
         self.app = app
+"""
 
 
 class Controller(object):
@@ -32,9 +33,13 @@ class Controller(object):
         if self.started and self.server_thread:
             # close thread
             self.server_thread.close()
-        return
 
-    def start_thread(self, app: Zig):
+        else:
+            raise Exception(exc_value)
+        
+
+
+    def start_server_thread(self, app: Zig):
         # assign zig app here
         self.server_thread.app = app
 
@@ -57,16 +62,15 @@ class Controller(object):
 
 class ApiParserThread(Controller, ApiParser):
 
-    def __init__(self, thread=None):
-        super().__init__(self, thread)
-
-
+    def __init__(self, *args, **kwargs):
+        super().__init__(self, *args, **kwargs)
 
 
 class SeleniumBrowserThread(Controller, SeleniumBrowser):
 
-    def __init__(self, thread=None):
-        super().__init__(self, thread)
+    def __init__(self, *args, **kwargs):
+        super().__init__(self, *args, **kwargs)
+        SeleniumBrowser.__init__(self, *args, **kwargs) 
 
 
 

@@ -1,0 +1,6 @@
+1. Should are developers use the same drivers so that the same version 
+of the browsers are being used for test?
+
+2. Isn't it important to make sure it render possible in the latest and/or oldest 
+version of each browser?
+

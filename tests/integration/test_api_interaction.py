@@ -33,10 +33,16 @@ class TestInteractionIntegration:
     
     @pytest.fixture
     def selenium_browser(self):
-        # selenium browser
+        # selenium browser: all browsers
         with SeleniumBrowserThread() as browser:
             yield browser 
 
+
+    @pytest.fixture
+    def chrome_browser(self):
+        # selenium browser: just chrome
+        with SeleniumBrowserThread(browser="chrome") as browser:
+            yield browser 
 
 
     @pytest.fixture
@@ -69,17 +75,23 @@ class TestInteractionIntegration:
         return app
 
 
-    def test_interaction_render_browser(self, basic_interaction, selenium_browser):
+    def test_interaction_render_browser(self, basic_interaction, chrome_browser):
         # use python requests to send get and parse api
 
 
         app = basic_interaction
-        expected_response = {'interactions': {'0': {'api_point': '/interact/0',
-                                                    'input': {'0': {'attribute': 'value', 
-                                                    'dom_type': 'input', 'id': '234'}},
-                                                    'output': {'0': {'attribute': 'content', 
-                                                    'dom_type': 'div', 'id': '345'}}}}, 
-                                                    "sections":{}}    
+              
+
+
+        app = Zig("test app")
+        app.add(Div(id=123))
+
+        chrome_browser.start_server_thread(app)
+        if chrome_browser.started: 
+            chrome_browser.get("http://127.0.0.1:5000/")         
+
+
+
 
         # thread starts
         """
@@ -121,10 +133,11 @@ class TestInteractionIntegration:
 
         #TODO: need to get server index and api url from app object 
 
-        api_parser.start_thread(app)
-        response = api_parser.get(url)
+        api_parser.start_server_thread(app)
+        if api_parser.started:
+            response = api_parser.get(url)
 
-        assert api_parser.get_json(response) == expected_response 
+            assert api_parser.get_json(response) == expected_response 
         
 
     def test_interaction_render_response_2(self, basic_interaction):

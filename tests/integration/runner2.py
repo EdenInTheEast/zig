@@ -6,6 +6,9 @@ import logging
 import requests
 import flask
 
+
+from typing import Callable
+
 from zig import Zig
 
 
@@ -50,22 +53,42 @@ class LiveServerThread(threading.Thread, ServerThread):
         self.host = self.app.container_config.host
         self.port = self.app.container_config.port
 
+        #TODO: need to add container-specific method to get index
+        if self.port:
+            self.index_url = "".join(["http://", self.host, ":", str(self.port)])
+        else: 
+            self.index_url =  "".join(["http://", self.host])
+
         # runs Flask/Django server
         self.app.run()
+
+        #wait_for(requests.get(self.index_url), 1000)
 
 
     def close(self):
         #TODO container agnostic method
-        #TODO need to get host and port from app
-        if self.port:
-            stop_url = "".join(["http://", self.host, ":", str(self.port), self.stop_route])
-        else: 
-            stop_url =  "".join(["http://", self.host, self.stop_route]) 
+        #TODO need to get host and port from app 
+        stop_url =  "".join([self.index_url, self.stop_route]) 
 
         requests.get(stop_url)
 
 
 """
+def wait_for(condition: Callable, timeout, poll=1):
+    res = condition()
+    end_time = time.time() + time_out
+
+    while not res:
+        if time.time() > end_time:
+            raise Exception("timeout")
+            
+        time.sleep(poll)
+        # try again
+        res=condition()
+    return res
+
+
+
 
 class ThreadController(object):
     # Able to plug in any type of server

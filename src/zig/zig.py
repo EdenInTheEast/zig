@@ -247,7 +247,7 @@ class CoreZig(BaseZig):
         res = dict()
 
         for i, x in enumerate(sections):
-            if x.sections:
+            if x.section:
                 res[i] = {
                     "dom_type": x.dom_type,
                     "data": x.render(),

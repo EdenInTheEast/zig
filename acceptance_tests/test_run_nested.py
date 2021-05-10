@@ -25,8 +25,11 @@ app.add(div)
 
 
 if __name__ == "__main__":
-    expected = {0: {'type': 'div', 'data': {'content': ''}, 'child': {0: {'type': 'div', 'data': {'content': ''}, 'child': {0: {'type': 'div', 'data': {'content': ''}, 'child': []}, 1: {'type': 'div', 'data': {'content': ''}, 'child': []}, 2: {'type': 'graph', 'data': {}, 'child': []}}}, 1: {'type': 'div', 'data': {'content': ''}, 'child': []}}}}
+    
+    expected = {'sections': {0: {'dom_type': 'div', 'data': {'id':None,'content': ''}, 'child': {0: {'dom_type': 'div', 'data': {'id':None, 'content': ''}, 'child': {0: {'dom_type': 'div', 'data': {'id':None, 'content': ''}, 'child': {}}, 1: {'dom_type': 'div', 'data': {'id':None, 'content': ''}, 'child': {}}, 2: {'dom_type': 'graph', 'data': {'id':None}, 'child': {}}}}, 1: {'dom_type': 'div', 'data': {'id':None, 'content': ''}, 'child': {}}}}}, 'interactions':{}}
 
     result = app.run()
+    print(result.blueprint)
 
-    assert result == expected
+    assert result.blueprint == expected
+    

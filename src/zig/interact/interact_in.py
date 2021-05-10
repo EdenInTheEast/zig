@@ -50,7 +50,7 @@ class InteractIn(BaseInput):
     """
 
     def __init__(
-        self, input_element: Union[Element, str], input_attribute: str, key: str = None
+        self, input_element: Union[Element, str], input_attribute: str = None, key: str = None
     ):
         # automatically infer input
         self.identity = None

@@ -41,9 +41,13 @@ class Graph(DomElement):
         self.figure = figure
 
     def render(self):
-        # convert json to dict. so that it will store in dict as dict instead of string
+        json_dict = {"id":self.id}
+
         if self.figure:
-            return json.loads(self.figure.to_json())
-        else:
-            # WHAT SHOULD WE DO IF FIGURE IS EMPTY?
-            return {}
+            # convert json to dict. so that it will store in dict as dict 
+            # instead of string
+            figure_dict = json.loads(self.figure.to_json()) 
+            json_dict = {**json_dict, **figure_dict}
+
+        return json_dict
+

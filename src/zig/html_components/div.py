@@ -33,7 +33,7 @@ class Div(HtmlElement):
 
     # TODO: put this into HTMLValueELement and HTMLContentElement
     def render(self):
-        return {"content": self.content, "id": self.id}
+        return {"id": self.id, "content": self.content}
 
     def get_value(self, attr):
         # return current value of a specific attribute

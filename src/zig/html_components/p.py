@@ -11,4 +11,4 @@ class P(HtmlElement):
         self.content = content
 
     def render(self):
-        return {"content": self.content, "id": self.id}
+        return {"id": self.id, "content": self.content}

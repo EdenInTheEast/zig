@@ -18,7 +18,7 @@ class InteractOut(InteractIn):
     def __init__(
         self,
         output_element: Union[Element, str],
-        output_attribute: str,
+        output_attribute: str = None,
         key: str = None,
     ):
 

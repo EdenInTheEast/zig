@@ -98,19 +98,13 @@ class FlaskContainer(Container):
 
         return app
 
-
-    def add_url_route(self, 
-                      app, 
-                      url: str,
-                      end_point: str,
-                      callback: Callable,
-                      ):
+    def add_url_route(
+        self, app, url: str, end_point: str, callback: Callable,
+    ):
 
         app.add_url_rule(url, end_point, callback)
 
         return app
-        
-
 
     """ Update methods
     """
@@ -157,10 +151,7 @@ class FlaskContainer(Container):
             for i in interactions.values():
                 if isinstance(i, Interact):
                     flask_blueprint = self._add_blueprint_url(
-                        flask_blueprint,
-                        i.id,
-                        i.api_point,
-                        i.http_response,
+                        flask_blueprint, i.id, i.api_point, i.http_response,
                     )
         else:
             raise Exception("Need Flask Blueprint")
@@ -172,7 +163,7 @@ class FlaskContainer(Container):
     def _interaction_http_response(self, callback: Callable):
         # uses Flask request object
         if request:
-            response = callback(request.method, request.form)
+            response = callback(request.method, request.form, request)
         else:
             raise Exception("Requires Request object")
 
@@ -216,9 +207,6 @@ class FlaskContainer(Container):
     """
 
     def run(self):
-        
+
         """need host/port and other configurations"""
-        self.app_instance.run(host=self.config.host, 
-                              port=self.config.port)
-
-
+        self.app_instance.run(host=self.config.host, port=self.config.port)

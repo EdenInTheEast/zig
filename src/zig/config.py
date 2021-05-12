@@ -3,7 +3,6 @@ from typing import Union
 from .defaults import DEFAULT_FLASK_TEMPLATE
 
 
-
 class Configuration:
     """use to pass and compile system configuration"""
 
@@ -38,13 +37,13 @@ class ContainerConfiguration(Configuration):
     """
 
     def __init__(
-        self, 
-        app_name, 
-        static_url=None, 
-        static_directory=None, 
+        self,
+        app_name,
+        static_url=None,
+        static_directory=None,
         template_directory=None,
         host=None,
-        port=None
+        port=None,
     ):
         self.app_name = app_name
         # Zig blue print: dict of all layout and interact elements
@@ -53,7 +52,6 @@ class ContainerConfiguration(Configuration):
         # server attributes
         self.host = host if host else "127.0.0.1"
         self.port = port if port else 5000
-
 
     def make_initialization_dict(self):
         pass
@@ -68,8 +66,8 @@ class FlaskConfiguration(ContainerConfiguration):
         template_directory: str,
         template_index_name: str,
         blueprint: dict = None,
-        host: str =None,
-        port: Union[str, int] =None
+        host: str = None,
+        port: Union[str, int] = None,
     ):
         # parent initialization
         super().__init__(self, app_name, host=host, port=port)
@@ -88,7 +86,6 @@ class FlaskConfiguration(ContainerConfiguration):
 
         # pass layout data to Flask. Should be able to configure later
         self.blueprint = blueprint if blueprint else {}
-
 
     """
         Return dictionary with the required parameters for Flask app initialization

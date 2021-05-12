@@ -115,7 +115,7 @@ class RestService {
     }
     putJSON(apiPoint, data) {
         //need to add error handler	  	
-        this.response$ = this.httpClient.post(apiPoint, data, this.httpOptions).pipe(Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_1__["retry"])(3));
+        this.response$ = this.httpClient.put(apiPoint, data, this.httpOptions).pipe(Object(rxjs_operators__WEBPACK_IMPORTED_MODULE_1__["retry"])(3));
         return this.response$;
     }
     postJSON(apiPoint, data) {
@@ -184,6 +184,7 @@ class DivComponent {
         this.createDom();
     }
     createDom() {
+        // test function	  
         this.child.innerHTML = "test me";
         this.child.setAttribute("id", "Baby");
         const button = document.createElement('button');
@@ -249,8 +250,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _html_div_div_component__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @html/div/div.component */ "DzY3");
 /* harmony import */ var _interfaces_component_map__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @interfaces/component-map */ "2aOy");
 /* harmony import */ var _app_rest_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @app/rest.service */ "2yus");
-/* harmony import */ var _html_directive__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./html.directive */ "+r5B");
-
 
 
 
@@ -268,30 +267,112 @@ class AppComponent {
         this.document = document;
         this.title = 'zig';
     }
-    ngOnInit() {
-        this.try();
-    }
+    ngOnInit() { }
     ngAfterViewInit() {
-        this.insertDOM();
+        this.initializeApp();
         //this.getInitialData();
     }
-    insertDOM() {
+    initializeApp() {
         this.restService.getJSON(AppComponent.initialApiEndPoint).subscribe((data) => {
-            this.jsonData = data;
-            for (let x in this.jsonData) {
-                let type = this.jsonData[x]['type'];
-                let properties = this.jsonData[x]['data'];
-                if (type == "div") {
-                    let ele = this.renderer.createElement(type);
+            // use renderer to make custom html element
+            this.jsonData = data['sections'];
+            this.interactionData = data['interactions'];
+            this.renderDOM(this.jsonData);
+            this.renderInteractions(this.interactionData);
+        });
+    }
+    renderDOM(sectionData) {
+        for (let x in sectionData) {
+            let type = sectionData[x]['dom_type'];
+            let properties = sectionData[x]['data'];
+            if (type != 'graph') {
+                let ele = this.renderer.createElement(type);
+                //set attributes
+                for (let a in properties) {
+                    this.renderer.setAttribute(ele, a, properties[a]);
+                    if (a == 'content') {
+                        this.renderer.setAttribute(ele, 'innerHTML', properties[a]);
+                        ele.innerHTML = properties[a];
+                    }
+                }
+                this.renderer.appendChild(this.elementRef.nativeElement, ele);
+                for (let c in sectionData[x]['child']) {
+                    //TODO: need to keep doing this recursively
+                    let type = sectionData[x]['child'][c]['dom_type'];
+                    let prop = sectionData[x]['child'][c]['data'];
                     let child = this.renderer.createElement(type);
-                    //this.renderer.setAttribute(ele, "style", "height:100px;");
-                    this.renderer.setAttribute(ele, "appHtml", "");
-                    this.renderer.setProperty(ele, "appHtml", "");
+                    for (let a in prop) {
+                        this.renderer.setAttribute(child, a, prop[a]);
+                        if (a == 'content') {
+                            this.renderer.setAttribute(child, 'innerHTML', prop[a]);
+                            child.innerHTML = prop[a];
+                        }
+                    }
                     this.renderer.appendChild(ele, child);
-                    this.renderer.appendChild(this.elementRef.nativeElement, ele);
                 }
             }
-        });
+        }
+    }
+    renderInteractions(interactionData) {
+        for (let interact in interactionData) {
+            let apiUrl = interactionData[interact]['api_point'];
+            //NOTE: Map() will have issue with JSON.stringify
+            var inputs = interactionData[interact]['input'];
+            var inputMap = this.getInputMap(inputs);
+            this.setEventListener(inputs, inputMap, apiUrl);
+            for (let o in interactionData[interact]['output']) {
+                //NOTE: AT THIS POINT, python backend is the one 
+                //determining and recording the INPUT and OUPUT 
+                //relationships
+            }
+        }
+    }
+    getInputMap(inputs) {
+        var inputMap = {};
+        for (const [indx, input] of Object.entries(inputs)) {
+            const inputElement = document.getElementById(input['id']);
+            const inputValue = inputElement.getAttribute(input['attribute']);
+            // create input Map first
+            // send all input values on each change
+            inputMap[indx] = { id: input['id'], dom_type: input['dom_type'], attribute: input['attribute'], value: inputValue };
+            // TODO: need to handle Graph Object too
+        }
+        return inputMap;
+    }
+    setEventListener(inputs, inputMap, apiUrl) {
+        for (const [k, i] of Object.entries(inputs)) {
+            let inputID = i['id'];
+            let inputType = i['dom_type'];
+            let inputAttribute = i['attribute'];
+            let inputObject = document.getElementById(inputID);
+            //TODO:
+            // - Input types with valueX
+            // - mouse and key events
+            // - other types' attributes
+            // - JS elements' properties
+            if (inputType == 'input' && inputAttribute == "value") {
+                // this is only for input types' values
+                this.renderer.listen(inputObject, 'change', (event) => {
+                    inputMap[k]["value"] = event.target.value;
+                    //TODO: need error handler
+                    this.restService
+                        .putJSON(apiUrl, inputMap)
+                        .subscribe((data) => {
+                        // THIS WILL RETURN OUTPUT CHANGE DATA
+                        for (let d in data) {
+                            this.updateChange(d, data[d]['attribute'], data[d]['data'], data[d]['dom_type']);
+                        }
+                    });
+                });
+            }
+        }
+    }
+    updateChange(id, attribute, value, dom_type) {
+        let element = document.getElementById(id);
+        // for content type and html attribute
+        attribute == "content" ? element.innerHTML = value : element.setAttribute(attribute, value);
+        // TODO: others
+        // graph type
     }
     try() {
         this.v = new _html_div_div_component__WEBPACK_IMPORTED_MODULE_2__["DivComponent"](this.elementRef, this.renderer, this.document);
@@ -299,15 +380,18 @@ class AppComponent {
     }
     getInitialData() {
         this.restService.getJSON(AppComponent.initialApiEndPoint).subscribe((data) => {
-            this.jsonData = data;
+            // creates component instead of html element
+            //  uses NgContainer
+            this.jsonData = data['sections'];
+            console.log(this.jsonData);
             for (let x in this.jsonData) {
-                let type = this.jsonData[x]['type'];
+                let type = this.jsonData[x]['dom_type'];
                 let properties = this.jsonData[x]['data'];
                 // get Factory for each component and use that to create the component
                 this.factoryResolver = this.componentFactoryResolver.resolveComponentFactory(_interfaces_component_map__WEBPACK_IMPORTED_MODULE_3__["componentMap"][type]);
                 this.component = this.factoryResolver.create(this.injector);
-                let ele = this.component.location;
-                this.renderer.setAttribute(ele, "appHtml", "");
+                //let ele = this.component.location;
+                //this.renderer.setAttribute(ele, 'appHtml', '');
                 this.zigTemplate.insert(this.component.hostView);
                 // store all components in a hashmap
                 // auto pass all properties regardless of type
@@ -320,7 +404,8 @@ class AppComponent {
         let componentFactory = this.zigTemplate.createComponent(resolver);
     }
 }
-//STORE THIS SEPARATELY
+//STORE THIS SEPARATELY, need to be able to set and share externally with python
+//url use to get layout data from python
 AppComponent.initialApiEndPoint = 'http://127.0.0.1:5000/api';
 AppComponent.ɵfac = function AppComponent_Factory(t) { return new (t || AppComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_app_rest_service__WEBPACK_IMPORTED_MODULE_4__["RestService"]), _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_0__["ComponentFactoryResolver"]), _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_0__["Injector"]), _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_0__["ElementRef"]), _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_angular_core__WEBPACK_IMPORTED_MODULE_0__["Renderer2"]), _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_angular_common__WEBPACK_IMPORTED_MODULE_1__["DOCUMENT"])); };
 AppComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineComponent"]({ type: AppComponent, selectors: [["app-root"]], viewQuery: function AppComponent_Query(rf, ctx) { if (rf & 1) {
@@ -328,12 +413,9 @@ AppComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineCompo
     } if (rf & 2) {
         let _t;
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵqueryRefresh"](_t = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵloadQuery"]()) && (ctx.zigTemplate = _t.first);
-    } }, decls: 4, vars: 0, consts: [["appHtml", ""], ["zigTemplate", ""]], template: function AppComponent_Template(rf, ctx) { if (rf & 1) {
-        _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](0, "p", 0);
-        _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtext"](1, "test tes test");
-        _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
-        _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementContainer"](2, null, 1);
-    } }, directives: [_html_directive__WEBPACK_IMPORTED_MODULE_5__["HtmlDirective"]], styles: ["\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IiIsImZpbGUiOiJhcHAuY29tcG9uZW50LnNhc3MifQ== */"] });
+    } }, decls: 2, vars: 0, consts: [["zigTemplate", ""]], template: function AppComponent_Template(rf, ctx) { if (rf & 1) {
+        _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementContainer"](0, null, 0);
+    } }, styles: ["\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IiIsImZpbGUiOiJhcHAuY29tcG9uZW50LnNhc3MifQ== */"] });
 
 
 /***/ }),

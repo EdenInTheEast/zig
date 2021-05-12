@@ -11,7 +11,6 @@ class Section:
 
     """
 
-
     def __init__(self):
         # need to implement your own section
         self.section = None
@@ -26,12 +25,10 @@ class Section:
         raise NotImplementedError
 
 
-
-
 class BaseSectionAttacher:
-    # interface with methods that will be added 
+    # interface with methods that will be added
     # directly to main object.
-    # 
+    #
     def __init__(self, section_type: str = None):
         self.section = None
         self.section_control = None
@@ -100,7 +97,6 @@ class SectionAttacher(Section, BaseSectionAttacher):
         # so that it can be chained
         return self
 
-
     def insert(self):
         pass
 
@@ -108,19 +104,13 @@ class SectionAttacher(Section, BaseSectionAttacher):
         if hasattr(self, "section"):
             self.section.show(self.section, *args, **kwargs)
         else:
-            raise Exception(f"Requires Section object") 
-
+            raise Exception(f"Requires Section object")
 
     def get(self, *args, **kwargs):
         if hasattr(self, "section"):
             self.section.get(self.section, *args, **kwargs)
         else:
             raise Exception(f"Requires Section object")
-
-
-
-
-
 
 
 # only for typing
@@ -142,7 +132,7 @@ class CoreSection(Section):
 
     def __init__(self):
 
-        self.supported_type = (Element)
+        self.supported_type = Element
 
         # dictionary for fast retrievel
         self.__section_dict = {}
@@ -176,7 +166,6 @@ class CoreSection(Section):
                 )
         else:
             self.__add(component)
-
 
     def __add(
         self, component: Element, section_list: list, section_dict: dict

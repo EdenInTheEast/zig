@@ -42,7 +42,7 @@ class CoreZig(BaseZig):
         template_directory: str = DEFAULT_TEMPLATE_DIRECTORY,
         template_index_name: str = None,
         host: str = None,
-        port: Union[str, int]= None,
+        port: Union[str, int] = None,
         **kwargs
     ):
         """
@@ -109,7 +109,7 @@ class CoreZig(BaseZig):
                     template_directory,
                     template_index_name=template_index_name,
                     host=host,
-                    port=port
+                    port=port,
                 )
 
             self.container = self._initiate_container(self.container_config)
@@ -262,10 +262,8 @@ class CoreZig(BaseZig):
     """
 
     def wsgi_entry(self):
-        #TODO wsgi-friendly entry point which is container agnostic
+        # TODO wsgi-friendly entry point which is container agnostic
         pass
-
-
 
     def _run_server(self, container):
         # Internal server start-up
@@ -293,7 +291,7 @@ class CoreZig(BaseZig):
         container: Container = None,
         interactions: Configuration = None,
         host: str = None,
-        port: Union[str, int] = None
+        port: Union[str, int] = None,
     ) -> dict:
         """Template method
         Render the template, and start the server
@@ -305,7 +303,7 @@ class CoreZig(BaseZig):
         :param container:
         :return: returns Configuration for introspection
         """
-        
+
         # Initialize
         sections = sections if sections else self.sections
         config = config if config else self.container_config
@@ -315,7 +313,6 @@ class CoreZig(BaseZig):
         # triggers rendering process: converts all to dictionary
         # either pick up up arguments or retrieve from self.sections
         config.blueprint = self._render(sections, interactions)
-       
 
         # TODO: need to be able to change configuration at runtime
         # TODO: need to set host and port
@@ -324,9 +321,11 @@ class CoreZig(BaseZig):
         # use this to add api point for sending initial json
         # also includes any necessary update procedures
         if self._update_procedures(container):
-            if host: config.host = host
-            if port: confg.port = port
-    
+            if host:
+                config.host = host
+            if port:
+                confg.port = port
+
             # starts server
             if self._run_server(container):
                 # TODO: should be able to not return anything

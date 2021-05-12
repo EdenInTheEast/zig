@@ -186,11 +186,9 @@ class Interact:
     """ ID METHODS
     """
 
-    def generate_id(self, 
-                    *, 
-                    curr_tries: int = 1, 
-                    max_tries: int = 10, 
-                    interact_ids: set = None) -> int:
+    def generate_id(
+        self, *, curr_tries: int = 1, max_tries: int = 10, interact_ids: set = None
+    ) -> int:
         # id generator for Interact Object
         # uses cls.interact_ids to keep track
         interact_ids = interact_ids if interact_ids else self.interact_ids
@@ -208,8 +206,6 @@ class Interact:
         elif curr_tries <= max_tries:
             curr_tries += 1
             self.generate_id(curr_tries=curr_tries, interact_ids=interact_ids)
-
-
 
     """ API METHODS
     """
@@ -285,16 +281,15 @@ class Interact:
 
         values_dict = values_dict if values_dict else self.values_dict
 
-        if self.values_dict.get(search_key, None):
-            self.values_dict[search_key] = new_value
-
+        if values_dict.get(search_key, None):
+            values_dict[search_key] = new_value
             return True
         else:
             raise KeyError(
                 f"{search_key} cannot be found in Interact input values vault"
             )
 
-    def update(self, request_data: dict):
+    def update(self, json_data: dict):
         # Template method
         # propose update prodcess
         # json_data will be a dictionary or list of htmlelement information
@@ -306,16 +301,21 @@ class Interact:
         # NOTE FORMAT should be in dict form
         # :Example: {index: {"id":id, "attribute":attr, "value":val}}
 
-        for o in request_data.values():
-            self._update_single_input(o["id"], o["attribute"], o["value"])
 
-        return True
+        if isinstance(json_data, dict):
+            for o in json_data.values():
+                self._update_single_input(o["id"], o["attribute"], o["value"])
+            return True
+
+        return False
+
+
 
     """ OUTPUT METHODS
     """
 
     def process(self):
-        # NOTE: main function that the client will be using
+        # NOTE: template function that the client will be using
 
         arg_list = self.inputs_args
         kwargs_dict = self.inputs_kwargs
@@ -327,7 +327,7 @@ class Interact:
         return outputs_dict
 
     def _process_inputs(self, inputs_args: Iterable, inputs_kwargs: dict, processor):
-        # NOTE: this is the main processing method
+        # This is the main processing method
         # compile
 
         if len(inputs_args) or len(inputs_kwargs):
@@ -379,11 +379,11 @@ class Interact:
     """ HTTP METHODS
     """
 
-    def http_response(self, request_method, request_data):
+    def http_response(self, request_method, request_data, request):
         if request_method == "POST":
-            response = self._post_response(request_data)
+            response = self._post_response(request_data, request)
         elif request_method == "PUT":
-            response = self._put_response(request_data)
+            response = self._put_response(request)
         elif request_method == "GET":
             response = self._get_response(request_data)
         else:
@@ -391,11 +391,13 @@ class Interact:
 
         return response
 
-    def _post_response(self, request_data):
+    def _post_response(self, request_data, request):
         # should be the same as put
         self._put_response(request_data)
 
-    def _put_response(self, request_data):
+    def _put_response(self, request):
+        request_data = request.get_json()
+
         # 1. Update values
         if self.update(request_data):
             # if update successfully, process and return output vales
